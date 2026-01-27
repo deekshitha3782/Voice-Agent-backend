@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "esbuild server/index.ts --bundle --platform=node --outfile=dist/index.cjs --external:pg --external:express-session --external:multer --external:ws",
+    "build": "esbuild server/index.ts --bundle --platform=node --outfile=dist/index.cjs --external:pg --external:express-session --external:multer --external:ws --external:vite --external:nanoid",
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push"
@@ -34,7 +34,7 @@
     "zod": "^3.25.76",
     "zod-validation-error": "^3.5.4"
   },
-  "devDependencies": {
+  "devDependencies": {`n    "vite": "^7.3.0",`n    "nanoid": "^3.3.0",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.0",
@@ -48,3 +48,5 @@
     "tsx": "^4.20.5"
   }
 }
+
+

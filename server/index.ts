@@ -80,7 +80,13 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
+    try {
+      serveStatic(app);
+    } catch (e) {
+      console.log("Note: Frontend static files not found, running API-only mode");
+      // In API-only mode (backend deployment), skip static file serving
+      // Frontend is served separately on Vercel
+    }
   } else {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
