@@ -8,8 +8,14 @@ import { nanoid } from "nanoid";
 const viteLogger = createLogger();
 
 export async function setupVite(server: Server, app: Express) {
-  // Dynamically import vite.config to avoid build-time resolution issues
-  const viteConfig = (await import("../vite.config")).default;
+  // Dynamically import vite.config with fallback for production builds
+  let viteConfig = {};
+  try {
+    viteConfig = (await import("../vite.config")).default;
+  } catch (e) {
+    // In production, vite.config won't be available - this is fine
+    console.log("Note: vite.config not found, using default config");
+  }
   
   const serverOptions = {
     middlewareMode: true,
