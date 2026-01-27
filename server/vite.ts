@@ -1,7 +1,6 @@
 import { type Express } from "express";
 import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
-import viteConfig from "../vite.config";
 import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
@@ -9,6 +8,9 @@ import { nanoid } from "nanoid";
 const viteLogger = createLogger();
 
 export async function setupVite(server: Server, app: Express) {
+  // Dynamically import vite.config to avoid build-time resolution issues
+  const viteConfig = (await import("../vite.config")).default;
+  
   const serverOptions = {
     middlewareMode: true,
     hmr: { server, path: "/vite-hmr" },
