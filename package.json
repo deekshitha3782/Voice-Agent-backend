@@ -8,7 +8,7 @@
                     "build":  "node --import tsx script/build.ts",
                     "start":  "NODE_ENV=production node dist/index.cjs",
                     "check":  "tsc",
-                    "db:push":  "npm exec drizzle-kit push",
+                    "db:push":  "npx drizzle-kit push",
                     "start:railway":  "node --import tsx server/index.ts"
                 },
     "dependencies":  {
