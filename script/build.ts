@@ -1,5 +1,4 @@
 import { build as esbuild } from "esbuild";
-import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
@@ -35,8 +34,8 @@ const allowlist = [
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
-  console.log("building client...");
-  await viteBuild();
+  // Skip client build - frontend is deployed separately
+  console.log("Skipping client build (frontend deployed separately)...");
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
