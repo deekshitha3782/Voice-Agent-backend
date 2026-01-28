@@ -1,4 +1,4 @@
-import "./config";
+// dotenv not needed - Railway provides env vars directly
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
