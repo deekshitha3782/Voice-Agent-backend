@@ -20,7 +20,7 @@ interface BeyContext {
 }
 const beyContexts = new Map<string, BeyContext>();
 
-// Cache for the Beyond Presence agent
+// Cache for the Beyond Presence agent (railway redeploy marker)
 let beyAgentId: string | null = null;
 let beyAvatarId: string | null = null;
 const beyUserAgentCache = new Map<string, string>();
