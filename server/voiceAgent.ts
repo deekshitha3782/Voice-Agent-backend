@@ -557,7 +557,9 @@ export async function generateCallSummary(sessionId: number, transcript?: string
   userName?: string;
   phoneNumber?: string;
   newAppointmentsCreated?: number;
+  llmProvider: "openai" | "groq";
 }> {
+  const llmProvider: "openai" | "groq" = process.env.GROQ_API_KEY ? "groq" : "openai";
   const session = await storage.getCallSession(sessionId);
   const toolCallsData = await storage.getToolCallsBySession(sessionId);
   
@@ -756,6 +758,7 @@ IMPORTANT:
       userName: extractedName || undefined,
       phoneNumber: extractedPhone || undefined,
       newAppointmentsCreated,
+      llmProvider,
     };
   } catch (error) {
     console.error("Error generating summary:", error);
@@ -789,6 +792,7 @@ IMPORTANT:
       userPreferences: [],
       userName: user?.name || undefined,
       phoneNumber: session?.phoneNumber || undefined,
+      llmProvider,
     };
   }
 }

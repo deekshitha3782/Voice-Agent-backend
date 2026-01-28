@@ -4,7 +4,7 @@ import express from "express";
 import { storage } from "./storage";
 import { processVoiceMessage, generateCallSummary, type ConversationContext } from "./voiceAgent";
 import { ensureCompatibleFormat, speechToText } from "./replit_integrations/audio/client";
-import { availableSlots } from "@shared/schema";
+import { availableSlots } from "../shared/schema";
 
 const audioBodyParser = express.json({ limit: "50mb" });
 
@@ -23,6 +23,7 @@ const beyContexts = new Map<string, BeyContext>();
 // Cache for the Beyond Presence agent
 let beyAgentId: string | null = null;
 let beyAvatarId: string | null = null;
+const beyUserAgentCache = new Map<string, string>();
 
 const BEY_API_BASE = "https://api.bey.dev/v1";
 
@@ -330,7 +331,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       res.status(201).json(session);
     } catch (error) {
       console.error("Error creating session:", error);
-      res.status(500).json({ error: "Failed to create session" });
+      if (error instanceof Error) {
+        console.error("Error details:", error.message, error.stack);
+      }
+      res.status(500).json({ error: "Failed to create session", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
@@ -582,11 +586,23 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
             appointments = await storage.getAppointmentsByUser(user.id);
             console.log(`Found user ${userName} with ${appointments.length} appointments:`, 
               appointments.map(a => `${a.date} ${a.time} - ${a.description}`));
-            
-            // Create a custom agent with this user's appointment context
-            console.log("Creating new custom agent with user's appointments...");
-            agentId = await createBeyAgentWithContext(userName, appointments, digitsOnly);
-            console.log("Custom agent created:", agentId);
+
+            // Reuse cached per-user agent to reduce connection latency
+            const cachedAgentId = beyUserAgentCache.get(digitsOnly);
+            if (cachedAgentId) {
+              console.log("Using cached Beyond Presence agent for user:", cachedAgentId);
+              agentId = cachedAgentId;
+            } else if (appointments.length > 0) {
+              // Create a custom agent with this user's appointment context only when needed
+              console.log("Creating new custom agent with user's appointments...");
+              agentId = await createBeyAgentWithContext(userName, appointments, digitsOnly);
+              if (agentId) {
+                beyUserAgentCache.set(digitsOnly, agentId);
+              }
+              console.log("Custom agent created:", agentId);
+            } else {
+              console.log("No existing appointments - skip custom agent for faster connection");
+            }
           } else {
             console.log("No user found for phone:", digitsOnly);
           }
