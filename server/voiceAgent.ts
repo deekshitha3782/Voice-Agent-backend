@@ -1,9 +1,11 @@
 import OpenAI from "openai";
 import { storage } from "./storage";
-import { availableSlots } from "@shared/schema";
+import { availableSlots } from "../shared/schema";
 
+// Use Groq for free LLM inference (compatible with OpenAI SDK)
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY,
+  baseURL: process.env.GROQ_API_KEY ? "https://api.groq.com/openai/v1" : undefined,
 });
 
 export interface ToolCallEvent {
@@ -603,8 +605,11 @@ IMPORTANT:
 - Return empty arrays if no appointments/cancellations were confirmed`;
 
   try {
+    // Use Groq's Llama model if GROQ_API_KEY is set, otherwise use OpenAI
+    const model = process.env.GROQ_API_KEY ? "llama-3.3-70b-versatile" : "gpt-4o-mini";
+    
     const extractionResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: model,
       messages: [
         { role: "system", content: "You are a precise data extraction assistant. Extract appointment information from call transcripts. Always respond with valid JSON." },
         { role: "user", content: extractionPrompt }
