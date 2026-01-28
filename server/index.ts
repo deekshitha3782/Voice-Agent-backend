@@ -1,4 +1,4 @@
-// dotenv not needed - Railway provides env vars directly
+import "./config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -23,6 +23,30 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+// CORS configuration for separate frontend deployment
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    "https://voice-agent-frontend-production-0024.up.railway.app",
+    "http://localhost:5173", // for local development
+  ];
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  
+  // Handle preflight OPTIONS requests
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
