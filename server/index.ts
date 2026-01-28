@@ -1,3 +1,4 @@
+import "./config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -80,13 +81,9 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
-    try {
-      serveStatic(app);
-    } catch (e) {
-      console.log("Note: Frontend static files not found, running API-only mode");
-      // In API-only mode (backend deployment), skip static file serving
-      // Frontend is served separately on Vercel
-    }
+    // In production with separate frontend deployment (e.g., on Railway/Vercel),
+    // don't serve static files. The frontend is deployed separately and calls this API.
+    console.log("Running API-only mode (frontend deployed separately)");
   } else {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
@@ -100,8 +97,7 @@ app.use((req, res, next) => {
   httpServer.listen(
     {
       port,
-      host: "0.0.0.0",
-      reusePort: true,
+      host: "127.0.0.1"
     },
     () => {
       log(`serving on port ${port}`);
