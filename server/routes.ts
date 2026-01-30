@@ -191,6 +191,9 @@ IMPORTANT RULES:
 // Create or get Beyond Presence agent for appointment scheduling (fallback for unknown users)
 async function getOrCreateBeyAgent(): Promise<string | null> {
   if (beyAgentId) return beyAgentId;
+
+  const agentVersion = process.env.BEY_AGENT_VERSION || "v10";
+  const agentName = `Appointment Scheduler ${agentVersion}`;
   
   const apiKey = process.env.BEY_API_KEY;
   if (!apiKey) {
@@ -216,7 +219,7 @@ async function getOrCreateBeyAgent(): Promise<string | null> {
     
     if (listResponse.ok) {
       const agents = await listResponse.json();
-      const existing = agents?.data?.find((a: any) => a.name === "Appointment Scheduler v8");
+      const existing = agents?.data?.find((a: any) => a.name === agentName);
       if (existing?.id) {
         beyAgentId = existing.id;
         console.log("Found existing Beyond Presence agent:", beyAgentId);
@@ -233,7 +236,7 @@ async function getOrCreateBeyAgent(): Promise<string | null> {
         "x-api-key": apiKey,
       },
       body: JSON.stringify({
-        name: "Appointment Scheduler v9",
+        name: agentName,
         avatar_id: avatarId,
         system_prompt: `You are a warm, caring AI appointment scheduling assistant with a gentle and soothing voice. Your job is to help users book and manage appointments through natural, friendly conversation.
 
