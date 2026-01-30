@@ -192,7 +192,7 @@ IMPORTANT RULES:
 async function getOrCreateBeyAgent(): Promise<string | null> {
   if (beyAgentId) return beyAgentId;
 
-  const agentVersion = process.env.BEY_AGENT_VERSION || "v10";
+  const agentVersion = process.env.BEY_AGENT_VERSION || "v11";
   const agentName = `Appointment Scheduler ${agentVersion}`;
   
   const apiKey = process.env.BEY_API_KEY;
@@ -266,8 +266,8 @@ WORKFLOW:
    - Confirm all details warmly: date, time, and description
    - Say "Wonderful, I've got that scheduled for you"
 5. For VIEWING appointments:
-   - Kindly tell them: "Your appointments should appear in the side panel on your screen. Please take a look there."
-   - Ask if they can see them and if there's anything else you can help with
+  - Read out the appointment list aloud using ONLY the [System note: ...] data
+  - If there are no appointments, say so clearly
 6. For CANCELLATION:
    - Kindly ask which appointment they'd like to cancel (date and time)
    - Confirm with understanding: "Of course, I've noted your request to cancel"
