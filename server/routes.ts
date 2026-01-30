@@ -192,7 +192,7 @@ IMPORTANT RULES:
 async function getOrCreateBeyAgent(): Promise<string | null> {
   if (beyAgentId) return beyAgentId;
 
-  const agentVersion = process.env.BEY_AGENT_VERSION || "v11";
+  const agentVersion = process.env.BEY_AGENT_VERSION || "v12";
   const agentName = `Appointment Scheduler ${agentVersion}`;
   
   const apiKey = process.env.BEY_API_KEY;
