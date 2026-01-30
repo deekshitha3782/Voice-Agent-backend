@@ -192,7 +192,7 @@ IMPORTANT RULES:
 async function getOrCreateBeyAgent(): Promise<string | null> {
   if (beyAgentId) return beyAgentId;
 
-  const agentVersion = process.env.BEY_AGENT_VERSION || "v12";
+  const agentVersion = process.env.BEY_AGENT_VERSION || "v13";
   const agentName = `Appointment Scheduler ${agentVersion}`;
   
   const apiKey = process.env.BEY_API_KEY;
@@ -579,6 +579,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       let appointments: any[] = [];
       
       const fastMode = (process.env.BEY_FAST_MODE ?? "true").toLowerCase() === "true";
+      const forceAppointments = (process.env.BEY_FORCE_APPOINTMENTS ?? "true").toLowerCase() === "true";
 
       // If phone number provided, look up user and create custom agent with their appointments
       if (phoneNumber) {
@@ -592,7 +593,14 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
             console.log(`Found user ${userName} with ${appointments.length} appointments:`, 
               appointments.map(a => `${a.date} ${a.time} - ${a.description}`));
 
-            if (fastMode) {
+            if (forceAppointments && appointments.length > 0) {
+              console.log("BEY_FORCE_APPOINTMENTS enabled - creating custom agent with DB appointments");
+              agentId = await createBeyAgentWithContext(userName, appointments, digitsOnly);
+              if (agentId) {
+                beyUserAgentCache.set(digitsOnly, agentId);
+              }
+              console.log("Custom agent created:", agentId);
+            } else if (fastMode) {
               console.log("BEY_FAST_MODE enabled - skipping custom agent for faster connection");
             } else {
               // Reuse cached per-user agent to reduce connection latency
