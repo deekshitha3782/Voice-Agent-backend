@@ -575,6 +575,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       let userName: string | null = null;
       let appointments: any[] = [];
       
+      const fastMode = (process.env.BEY_FAST_MODE ?? "true").toLowerCase() === "true";
+
       // If phone number provided, look up user and create custom agent with their appointments
       if (phoneNumber) {
         console.log("Phone number provided, looking up user...");
@@ -587,21 +589,25 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
             console.log(`Found user ${userName} with ${appointments.length} appointments:`, 
               appointments.map(a => `${a.date} ${a.time} - ${a.description}`));
 
-            // Reuse cached per-user agent to reduce connection latency
-            const cachedAgentId = beyUserAgentCache.get(digitsOnly);
-            if (cachedAgentId) {
-              console.log("Using cached Beyond Presence agent for user:", cachedAgentId);
-              agentId = cachedAgentId;
-            } else if (appointments.length > 0) {
-              // Create a custom agent with this user's appointment context only when needed
-              console.log("Creating new custom agent with user's appointments...");
-              agentId = await createBeyAgentWithContext(userName, appointments, digitsOnly);
-              if (agentId) {
-                beyUserAgentCache.set(digitsOnly, agentId);
-              }
-              console.log("Custom agent created:", agentId);
+            if (fastMode) {
+              console.log("BEY_FAST_MODE enabled - skipping custom agent for faster connection");
             } else {
-              console.log("No existing appointments - skip custom agent for faster connection");
+              // Reuse cached per-user agent to reduce connection latency
+              const cachedAgentId = beyUserAgentCache.get(digitsOnly);
+              if (cachedAgentId) {
+                console.log("Using cached Beyond Presence agent for user:", cachedAgentId);
+                agentId = cachedAgentId;
+              } else if (appointments.length > 0) {
+                // Create a custom agent with this user's appointment context only when needed
+                console.log("Creating new custom agent with user's appointments...");
+                agentId = await createBeyAgentWithContext(userName, appointments, digitsOnly);
+                if (agentId) {
+                  beyUserAgentCache.set(digitsOnly, agentId);
+                }
+                console.log("Custom agent created:", agentId);
+              } else {
+                console.log("No existing appointments - skip custom agent for faster connection");
+              }
             }
           } else {
             console.log("No user found for phone:", digitsOnly);
